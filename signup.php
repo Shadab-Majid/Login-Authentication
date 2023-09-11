@@ -32,12 +32,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $uname = $_POST['name'];
     $uemail = $_POST['email'];
     $upaswd = $_POST['password'];
+
+    //securing the password using the hash password 
+
+    $secure_paswd = password_hash($upaswd, PASSWORD_BCRYPT);
+
+
     
-    if (empty($uname) || empty($uemail) || empty($upaswd)) {
+    if (empty($uname) || empty($uemail) || empty($secure_paswd)) {
         $errorMessage = "All fields are required";
     } else {
         $stmnt = $con->prepare("INSERT INTO logindata (name, email, password) VALUES (?, ?, ?)");
-        $stmnt->bind_param('sss', $uname, $uemail, $upaswd);
+        $stmnt->bind_param('sss', $uname, $uemail, $secure_paswd);
 
         if ($stmnt->execute()) {
             $successMessage = "Data Inserted Successfully";

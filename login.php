@@ -1,46 +1,45 @@
 <?php
-
 session_start();
-if(isset($_POST["submit"])){
+if (isset($_POST["submit"])) {
     $uname = $_POST['uname'];
     $paswd = $_POST['pswd'];
-    // if(empty($uname) && empty($paswd)){
-    //     echo " "
-    // }
+
+    // Secure the password using hash function 
+    $secure_paswd = password_hash($paswd, PASSWORD_BCRYPT);
+
     include "config.php";
-    
-    $stmnt = $con->prepare("SELECT name, password FROM logindata WHERE name =? && password = ?");
-    $stmnt->bind_param('ss', $uname, $paswd);
+
+    $stmnt = $con->prepare("SELECT name, password FROM logindata WHERE name = ?");
+    $stmnt->bind_param('s', $uname);
     $stmnt->execute();
 
     $result = $stmnt->get_result();
 
-    if($result->num_rows == 1){
-        $_SESSION['uname'] = $uname;
-        $_SESSION['paswd'] = $paswd;
+    if ($result->num_rows == 1) {
+        $row = $result->fetch_assoc();
+        $hashPaswdOfDB = $row['password'];
 
-        header('location: welcome.php');
-    }else{
-        echo "Invalid username and password <a href = 'login.php'>try Again</a>.";
+        // Checking the password against the hashed password from the database
+        if (password_verify($paswd, $hashPaswdOfDB)) {
+            $_SESSION['uname'] = $uname;
+            header('location: welcome.php');
+        } else {
+            echo "Invalid username and password <a href='login.php'>try Again</a>.";
+        }
+    } else {
+        echo "Invalid username and password <a href='login.php'>try Again</a>.";
     }
-
 }
-
-
-
-
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Login</title>
     <link rel="stylesheet" href="login-style.css">
 </head>
-
 <body>
     <div class="center">
         <h1>Login</h1>
@@ -52,9 +51,9 @@ if(isset($_POST["submit"])){
                 <div class="forget-pass">
                     <a href="#" class="link" onclick="alert()">Forget Password ?</a>
                 </div>
-                <input type="submit" name="submit" value="login" class="btn btn primary">
+                <input type="submit" name="submit" value="login" class="btn btn-primary">
 
-                <div class="SignUp">New Member ? <a href="signup.php" class="link">Creat Account</a></div>
+                <div class="SignUp">New Member ? <a href="signup.php" class="link">Create Account</a></div>
             </div>
         </form>
     </div>
@@ -64,5 +63,4 @@ if(isset($_POST["submit"])){
         }
     </script>
 </body>
-
 </html>
